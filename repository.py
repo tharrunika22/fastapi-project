@@ -14,5 +14,6 @@ def create_product(db, product_data):
 
     return product
 
+
 def get_products(db):
     return db.query(Product).all()
