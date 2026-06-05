@@ -1,17 +1,18 @@
 from pydantic import BaseModel
-from typing import Optional
 
 
-class ProductCreate(BaseModel):
-    name: str
-    description: str
-    price: float
-    stock: int
+class SignupRequest(BaseModel):
+    username: str
+    email: str
+    phone: str
+    password: str
 
 
+class LoginRequest(BaseModel):
+    email: str
+    password: str
 
-class ProductUpdate(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    price: Optional[float] = None
-    stock: Optional[int] = None
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str

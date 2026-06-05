@@ -2,77 +2,100 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.features.products.models import Product
-from app.features.products.schemas import ProductCreate, ProductUpdate
+from app.features.users.models import User
+from app.core.security import (
+    verify_password,
+    create_access_token
+)
+from pydantic import BaseModel
 
-router = APIRouter(prefix="/products", tags=["Products"])
-@router.post("/")
-def create_product(data: ProductCreate, db: Session = Depends(get_db)):
+router = APIRouter(
+    prefix="/auth",
+    tags=["Authentication"]
+)
 
-    new_product = Product(
-        name=data.name,
-        description=data.description,
-        price=data.price,
-        stock=data.stock
+
+from app.features.auth.schemas import (
+    SignupRequest,
+    LoginRequest,
+)
+
+@router.post("/signup")
+def signup(data: SignupRequest, db: Session = Depends(get_db)):
+
+    existing_email = db.query(User).filter(
+        User.email == data.email
+    ).first()
+
+    if existing_email:
+        raise HTTPException(
+            status_code=400,
+            detail="Email already exists"
+        )
+
+    existing_phone = db.query(User).filter(
+        User.phone == data.phone
+    ).first()
+
+    if existing_phone:
+        raise HTTPException(
+            status_code=400,
+            detail="Phone already exists"
+        )
+
+    from app.core.security import hash_password
+
+    user = User(
+        username=data.username,
+        email=data.email,
+        phone=data.phone,
+        password=hash_password(data.password)
     )
 
-    db.add(new_product)
+    db.add(user)
     db.commit()
-    db.refresh(new_product)
+    db.refresh(user)
 
     return {
-        "message": "Product created successfully",
-        "product": new_product
+        "message": "User registered successfully"
     }
-@router.get("/")
-def get_all_products(db: Session = Depends(get_db)):
 
-    products = db.query(Product).all()
-    return products
-@router.get("/{product_id}")
-def get_product(product_id: int, db: Session = Depends(get_db)):
 
-    product = db.query(Product).filter(Product.id == product_id).first()
+@router.post("/login")
+def login(data: LoginRequest, db: Session = Depends(get_db)):
 
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
+    user = db.query(User).filter(
+        User.email == data.email
+    ).first()
 
-    return product
-@router.put("/{product_id}")
-def update_product(
-    product_id: int,
-    data: ProductUpdate,
-    db: Session = Depends(get_db)
-):
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password"
+        )
 
-    product = db.query(Product).filter(Product.id == product_id).first()
+    if not verify_password(
+        data.password,
+        user.password
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password"
+        )
 
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
-
-    update_data = data.dict(exclude_unset=True)
-
-    for key, value in update_data.items():
-        setattr(product, key, value)
-
-    db.commit()
-    db.refresh(product)
+    access_token = create_access_token(
+        {"sub": str(user.id)}
+    )
 
     return {
-        "message": "Product updated successfully",
-        "product": product
+        "access_token": access_token,
+        "token_type": "bearer"
     }
-@router.delete("/{product_id}")
-def delete_product(product_id: int, db: Session = Depends(get_db)):
 
-    product = db.query(Product).filter(Product.id == product_id).first()
 
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
-
-    db.delete(product)
-    db.commit()
+@router.post("/logout")
+def logout():
 
     return {
-        "message": "Product deleted successfully"
+        "message": "Logout successful"
     }

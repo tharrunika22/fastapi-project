@@ -1,7 +1,13 @@
-from app.features.products import repository
+from app.features.auth.repository import get_user_by_email
 
-def add_product(db, product_data):
-    return repository.create_product(db, product_data)
+def authenticate_user(db, email, password):
 
-def list_products(db):
-    return repository.get_products(db)
+    user = get_user_by_email(db, email)
+
+    if not user:
+        return None
+
+    if user.password != password:
+        return None
+
+    return user
