@@ -23,11 +23,11 @@ router = APIRouter(
 def create_cart(
     data: CartCreate,
     db: Session = Depends(get_db),
-    current_user: int = Depends(get_current_user)   # assuming returns user_id
+    current_user=Depends(get_current_user)
 ):
     return add_to_cart(
         db,
-        current_user,
+        current_user.id,
         data
     )
 
@@ -35,11 +35,11 @@ def create_cart(
 @router.get("/")
 def get_cart(
     db: Session = Depends(get_db),
-    current_user: int = Depends(get_current_user)
+    current_user=Depends(get_current_user)
 ):
     return get_user_cart(
         db,
-        current_user
+        current_user.id
     )
 
 
@@ -47,7 +47,7 @@ def get_cart(
 def delete_cart(
     cart_id: int,
     db: Session = Depends(get_db),
-    current_user: int = Depends(get_current_user)
+    current_user=Depends(get_current_user)
 ):
     deleted = remove_from_cart(db, cart_id)
 
@@ -59,4 +59,4 @@ def delete_cart(
 
     return {
         "message": "Item removed from cart"
-    }
+    } 

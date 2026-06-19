@@ -12,7 +12,7 @@ def add_to_cart(db, user_id, data):
     cart_item = Cart(
         user_id=user_id,
         product_id=data.product_id,
-        quantity=data.quantity
+        quantity=data.quantity,
     )
 
     return create_cart_item(

@@ -1,4 +1,5 @@
-from app.features.cart.models import Cart
+from app.features.cart.models import Cart 
+from sqlalchemy.orm import joinedload
 
 
 def create_cart_item(db, cart):
@@ -9,9 +10,7 @@ def create_cart_item(db, cart):
 
 
 def get_cart_by_user(db, user_id):
-    return db.query(Cart).filter(
-        Cart.user_id == user_id
-    ).all()
+    return db.query(Cart).filter(Cart.user_id == user_id).options(joinedload(Cart.product)).all()
 
 
 def get_cart_item(db, cart_id):

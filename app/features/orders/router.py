@@ -6,7 +6,8 @@ from app.db.session import get_db
 from app.features.orders.models import Order
 from app.features.orders.schemas import  OrderCreate
 from fastapi import APIRouter, Depends, HTTPException
-from app.features.orders.schemas import OrderCreate, OrderUpdate
+from app.features.orders.schemas import OrderCreate, OrderUpdate 
+from app.features.products.models import Product
 router = APIRouter(
     prefix="/orders",
     tags=["Orders"]
@@ -18,12 +19,16 @@ def create_order(
     db: Session = Depends(get_db)
     
 ):
-
     order = Order(
         user_id=data.user_id,
         product_id=data.product_id,
-        quantity=data.quantity
-    )
+        quantity=data.quantity,
+        payment_status="Paid",
+        razorpay_order_id=data.razorpay_order_id,
+        razorpay_payment_id=data.razorpay_payment_id,
+        razorpay_signature=data.razorpay_signature
+)
+
 
     db.add(order)
     db.commit()
@@ -47,11 +52,49 @@ def get_orders_by_user(
 
     for order in orders:
         result.append({
-            "id": order.id,
+           "id": order.id,
             "username": order.user.username,
             "product_name": order.product.name,
             "quantity": order.quantity,
-            "ordered_at": order.ordered_at
+            "ordered_at": order.ordered_at,
+            "payment_status": order.payment_status,
+            "payment_id": order.payment_id,
+            "razorpay_order_id":order.razorpay_order_id
+   })
+
+    return result 
+@router.get("/vendor/orders")
+def get_vendor_orders(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+
+    orders = (
+        db.query(Order)
+        .join(Product, Order.product_id == Product.id)
+        .filter(Product.vendor_id == current_user.id)
+        .all()
+    )
+
+    result = []
+
+    for order in orders:
+        result.append({
+           "order_id": order.id,
+
+    "customer_id": order.user.id,
+    "customer_name": order.user.username,
+    "customer_email": order.user.email,
+
+    "product_name": order.product.name,
+    "product_price": order.product.price,
+    "quantity": order.quantity,
+
+    "ordered_at": order.ordered_at,
+
+    "payment_status": order.payment_status,
+    "razorpay_order_id": order.razorpay_order_id,
+    "razorpay_payment_id": order.razorpay_payment_id
         })
 
     return result

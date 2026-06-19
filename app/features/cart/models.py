@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, ForeignKey
+from sqlalchemy.orm import relationship
 from app.db.base import Base
 
 
@@ -16,5 +17,5 @@ class Cart(Base):
         Integer,
         ForeignKey("products.id")
     )
-
     quantity = Column(Integer, default=1)
+    product = relationship("Product", back_populates="carts")

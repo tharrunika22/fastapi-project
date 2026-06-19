@@ -1,12 +1,14 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional 
+from typing import List
 
 
 class ProductCreate(BaseModel):
     name: str
     description: str
     price: float
-    stock: int
+    stock: int 
+    image_urls: List[str]
 
 
 

@@ -16,4 +16,8 @@ class User(Base):
 
     password = Column(String, nullable=False) 
     orders = relationship("Order", back_populates="user") 
+    products = relationship(
+    "Product",
+    back_populates="vendor"
+)
     role = Column(String, nullable=False)

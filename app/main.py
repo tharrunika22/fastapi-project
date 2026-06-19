@@ -11,10 +11,14 @@ from app.features.orders.router import router as order_router
 
 from app.features.users.models import User
 from app.features.users.router import router as user_router 
-from app.features.auth.router import router as auth_router 
+from app.features.auth.router import router as auth_router  
 from app.features.cart.router import (
     router as cart_router
-)
+) 
+from app.features.address.router import router as address_router 
+from app.features.payments.router import router as payment_router
+
+
 
 
 Base.metadata.create_all(bind=engine)
@@ -38,7 +42,9 @@ app.include_router(product_router)
 app.include_router(order_router) 
 app.include_router(user_router) 
 app.include_router(auth_router)
-app.include_router(cart_router)
+app.include_router(cart_router) 
+app.include_router(address_router)
+app.include_router(payment_router)
 @app.get("/")
 def home():
     return {"message": "Ecommerce API Running"}
